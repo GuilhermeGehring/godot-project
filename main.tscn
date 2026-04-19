@@ -20,16 +20,13 @@ size = Vector2(80, 100)
 [node name="Main" type="Node2D" unique_id=17548696]
 script = ExtResource("1_main")
 
-[node name="Background" type="CanvasLayer" parent="." unique_id=1125239923]
-layer = -100
-
-[node name="TextureRect" type="TextureRect" parent="Background"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-texture = ExtResource("4_bg")
-stretch_mode = 1
-
 [node name="World" type="Node2D" parent="." unique_id=1601491236]
+
+[node name="Background" type="Sprite2D" parent="World"]
+position = Vector2(0, 130)
+scale = Vector2(2.1, 2.1)
+z_index = -1
+texture = ExtResource("4_bg")
 
 [node name="LeftWall" type="StaticBody2D" parent="World"]
 position = Vector2(-530, 100)
