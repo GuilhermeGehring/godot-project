@@ -62,6 +62,26 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-04-19 — Bug: shake recharge não disparava (mouse_filter na UI)
+
+**Contexto**: shake recharge implementado e mergeado na sessão anterior, mas no teste o `_unhandled_input` do player não recebia nenhum evento de mouse. Action `recharge` registrada no InputMap, prints em `_input` confirmavam que o evento chegava ao Godot. Só `_unhandled_input` ficava silencioso.
+**Decisão / fix**: setar `mouse_filter = 2` (IGNORE) em todos os ColorRects decorativos: o Background fullscreen, HealthBarBg/Fill, SprayBarBg/Fill.
+**Razão raiz**: `Control.mouse_filter` é `STOP` por padrão. O Background tinha `anchors_preset = 15` (fullscreen) → cobria a tela toda → engolia 100% dos eventos de mouse na pipeline da GUI antes deles virarem "unhandled". A skill recomenda usar `_unhandled_input` pra gameplay; a correção certa é fazer a UI decorativa não consumir input, não trocar pra `_input` (que mata a hierarquia de input).
+**Lição registrada em** `docs/ARCHITECTURE.md` (seção "Gotcha — mouse_filter em UI decorativa").
+**Impacto**: `main.tscn` (5 ColorRects ganharam `mouse_filter = 2`), `docs/ARCHITECTURE.md` (nova seção).
+
+---
+
+## 2026-04-19 — Recarga do spray por shake (remove recarga passiva)
+
+**Contexto**: spray recarregava passivamente a 25/s ao soltar o fire. Sem desafio, sem identidade de "spray can".
+**Decisão**: remover a recarga passiva. Adicionar action `recharge` (clique direito) e detectar **inversões de direção vertical** do mouse enquanto segurado. Cada flip (sinal de `motion.relative.y` muda) rende `SHAKE_RECHARGE_PER_FLIP` = 4 unidades. Filtra `|Δy| < 5 px`. Detecção em `_unhandled_input` (event-driven).
+**Razão**: inversão ≠ movimento. Somar cumulativo daria recarga por andar o mouse reto — quebra a intenção de "chacoalhar". Detectar flip premia shake real. Remover recarga passiva força o jogador a escolher entre atirar e recarregar, criando tensão tática.
+**Números**: shake vigoroso (~10 flips/s) = ~40 un/s, recarga cheia em ~2.5 s. Shake lento (~3 flips/s) = ~12 un/s, recarga cheia em ~8 s. Dreno de atirar é 40/s, então atirar + shake ao mesmo tempo só sustenta tinta com shake bem rápido.
+**Impacto**: `entities/player/player.gd` (novo `_unhandled_input`, `_process_shake`, constantes `SHAKE_*`; removido `SPRAY_RECHARGE_PER_SEC`), `project.godot` (+ action `recharge`), `docs/{GAME_RULES,ARCHITECTURE,SESSION_LOG}.md`.
+
+---
+
 ## 2026-04-18 — Mapa duplicado + rota vertical de 9 pulos + level complete
 
 **Contexto**: mapa horizontal curto (~1800 px), 4 plataformas sem rota vertical clara, sem condição de vitória.

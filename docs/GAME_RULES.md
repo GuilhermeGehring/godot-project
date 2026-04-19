@@ -4,13 +4,14 @@ Stats e comportamentos oficiais. Fonte da verdade — se o código divergir, **a
 
 ## Controles
 
-| Ação               | Input                          |
-|--------------------|--------------------------------|
-| Andar esquerda     | `A` ou seta esquerda           |
-| Andar direita      | `D` ou seta direita            |
-| Pular              | `Espaço`                       |
-| Spray              | Click esquerdo do mouse (segura) |
-| Reiniciar (após game over) | `Espaço`               |
+| Ação               | Input                                                   |
+|--------------------|---------------------------------------------------------|
+| Andar esquerda     | `A` ou seta esquerda                                    |
+| Andar direita      | `D` ou seta direita                                     |
+| Pular              | `Espaço`                                                |
+| Spray              | Click esquerdo do mouse (segura)                        |
+| Recarregar spray   | Clique direito + chacoalhar mouse na vertical           |
+| Reiniciar (após game over) | `Espaço`                                        |
 
 Os inputs são declarados no **Input Map** (Project Settings → Input Map). Não hardcode teclas no código.
 
@@ -34,21 +35,41 @@ Reiniciar: aperta Espaço na tela de game over → `get_tree().reload_current_sc
 
 ## Spray
 
-| Stat                     | Valor            |
-|--------------------------|------------------|
-| Carga máxima             | 100              |
-| Dreno enquanto atira     | 40 unidades/s    |
-| Recarga quando solto     | 25 unidades/s    |
-| Cadência                 | 25 tiros/s (intervalo 0.04 s) |
-| Ângulo do cone (spread)  | ±0.30 rad (~±17°) |
-| Velocidade da bullet     | 750 px/s         |
-| Lifetime da bullet       | 0.35 s (alcance ~260 px) |
-| Dano por bullet          | 1                |
+| Stat                     | Valor                               |
+|--------------------------|-------------------------------------|
+| Carga máxima             | 100                                 |
+| Dreno enquanto atira     | 40 unidades/s                       |
+| Recarga                  | **somente via shake** (ver abaixo)  |
+| Cadência                 | 25 tiros/s (intervalo 0.04 s)       |
+| Ângulo do cone (spread)  | ±0.30 rad (~±17°)                   |
+| Velocidade da bullet     | 750 px/s                            |
+| Lifetime da bullet       | 0.35 s (alcance ~260 px)            |
+| Dano por bullet          | 1                                   |
 
 Detalhes:
 - Mira pela posição do mouse no mundo (`get_global_mouse_position()`).
 - Bullet morre no primeiro contato (inimigo ou parede).
-- Quando a carga zera, o spray para de atirar mesmo se o botão continuar pressionado. Só volta quando a carga estiver > 0 (recarga é automática soltando o botão).
+- Quando a carga zera, o spray para de atirar mesmo se o botão continuar pressionado. Só volta depois de recarregar.
+
+### Recarga (shake mechanic)
+
+O spray **não recarrega passivamente**. Acabou a tinta, sem tiro até chacoalhar.
+
+| Parâmetro                         | Valor            |
+|-----------------------------------|------------------|
+| Ganho por inversão de direção     | 4 unidades       |
+| Delta vertical mínimo pra contar  | 5 px             |
+
+Como funciona:
+- Segura o **clique direito** e move o mouse pra **cima e pra baixo** (vertical).
+- Cada vez que a direção vertical do mouse **inverte** (ex: estava subindo, agora desce), ganha 4 unidades de carga.
+- Movimentos com `|Δy| < 5 px` são ignorados (filtra jitter da mesa).
+- Soltar o clique direito **reseta o detector** de direção — a próxima primeira movimentação não dá unidade de graça.
+- Atirar e recarregar ao mesmo tempo é permitido, mas o dreno (40/s) passa fácil um shake casual; o jogador precisa chacoalhar rápido pra manter tinta enquanto atira.
+
+Feel esperado:
+- Shake vigoroso (~8–10 flips/s) → ~32–40 unidades/s → recarga completa em ~2.5–3 s.
+- Shake casual (~2–3 flips/s) → ~8–12 unidades/s → recarga completa em ~8–12 s.
 
 ## Inimigos
 

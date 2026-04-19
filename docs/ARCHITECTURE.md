@@ -100,10 +100,18 @@ Bullet faz `body is Enemy` + `(body as Enemy).hit(DAMAGE)`. Qualquer coisa que e
 
 - Estado no player: `spray_charge: float` 0–100.
 - Dreno contínuo (`SPRAY_DRAIN_PER_SEC * delta`) enquanto `Input.is_action_pressed("fire")` e `charge > 0`.
-- Recarga contínua (`SPRAY_RECHARGE_PER_SEC * delta`) quando não está atirando.
+- **Sem recarga passiva.** Recarga só via shake (ver abaixo).
 - Cadência controlada por **acumulador**: `_fire_accumulator += delta`, e enquanto >= intervalo, dispara uma bullet. Funciona bem em low-fps (múltiplos tiros por frame, sem perder cadência).
 - Direção: `(get_global_mouse_position() - player.global_position).normalized().rotated(random(-spread, +spread))`.
 - Bullets spawnam como filhas de `Main` (sibling do Player). Render order fica atrás na árvore → em cima do player visualmente.
+
+### Shake recharge
+
+- Action `recharge` no Input Map = botão direito do mouse.
+- Lógica em `Player._unhandled_input` (event-driven, não por `_physics_process`): ao receber `InputEventMouseMotion` enquanto `recharge` está pressionada, compara o sinal de `motion.relative.y` com o último sinal armazenado. Se inverteu → adiciona `SHAKE_RECHARGE_PER_FLIP` (4 unidades) e emite `spray_changed`.
+- Deltas com `|y| < SHAKE_MIN_DELTA` (5 px) são descartados pra filtrar jitter.
+- Ao soltar o botão direito (`event.is_action_released("recharge")`), zera `_last_shake_dy_sign` pra não dar "free flip" ao reapertar.
+- Decisão: detectar **inversões** em vez de somar `|Δy|` cumulativo. Inversão premia o movimento real de shake — andar o mouse reto não conta. Somar cumulativo daria recarga por qualquer movimento do mouse, quebrando a identidade "spray can".
 
 ### Bullet
 
@@ -122,6 +130,18 @@ Bullet faz `body is Enemy` + `(body as Enemy).hit(DAMAGE)`. Qualquer coisa que e
 - Health bar e Spray bar: dois `ColorRect` empilhados (background escuro + fill colorido), posicionados em offsets fixos num `CanvasLayer` (layer 100).
 - Fill tem `size.x` ajustado pelo ratio atual/máximo ao receber o sinal.
 - Game over: `Control` cobrindo a tela (anchors 0,0,1,1), hidden no início, `mouse_filter = IGNORE` pra não consumir eventos.
+
+### Gotcha — mouse_filter em UI decorativa
+
+**Todo `Control` decorativo neste projeto deve ter `mouse_filter = 2` (IGNORE).** Inclui: ColorRects de background, fills de barra, panels que só pintam pixel.
+
+Por quê: `Control.mouse_filter` é `STOP` por padrão. Um Control com STOP que cobre área significativa (especialmente fullscreen, tipo o Background) **intercepta todo evento de mouse na pipeline da GUI**. `_unhandled_input` só recebe o que sobra depois da GUI — então mecânicas event-driven (tipo o shake recharge) param de funcionar sem mensagem de erro.
+
+`_input` ignora a pipeline da GUI (vê tudo), por isso é tentador trocar pra `_input` quando isso quebra. **Não faça.** A skill diz `_unhandled_input` pra gameplay; respeitar isso preserva a hierarquia de input (UI consome o que precisa, gameplay pega o resto). A correção certa é `mouse_filter = IGNORE` em decoração.
+
+Diagnóstico rápido se input event-driven parar de funcionar:
+1. Adicionar print em `_input` e em `_unhandled_input`.
+2. Se `_input` recebe e `_unhandled_input` não → algum Control com STOP tá comendo. Suspeitos: ColorRects de background/UI sem `mouse_filter` setado.
 
 ## Performance
 

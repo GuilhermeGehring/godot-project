@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3]
 
-[ext_resource type="Script" path="res://main.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://cagq1dsps8bbu" path="res://main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://entities/player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy.tscn" id="3_enemy"]
 [ext_resource type="Texture2D" path="res://assets/level_01_bg.png" id="4_bg"]
@@ -17,10 +17,10 @@ size = Vector2(40, 1200)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_finish"]
 size = Vector2(80, 100)
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node2D" unique_id=17548696]
 script = ExtResource("1_main")
 
-[node name="Background" type="CanvasLayer" parent="."]
+[node name="Background" type="CanvasLayer" parent="." unique_id=1125239923]
 layer = -100
 
 [node name="TextureRect" type="TextureRect" parent="Background"]
@@ -29,7 +29,7 @@ anchor_bottom = 1.0
 texture = ExtResource("4_bg")
 stretch_mode = 1
 
-[node name="World" type="Node2D" parent="."]
+[node name="World" type="Node2D" parent="." unique_id=1601491236]
 
 [node name="LeftWall" type="StaticBody2D" parent="World"]
 position = Vector2(-530, 100)
@@ -364,39 +364,43 @@ color = Color(1.0, 0.85, 0.1, 0.6)
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(-280, 460)
 
-[node name="SpawnTimer" type="Timer" parent="."]
+[node name="SpawnTimer" type="Timer" parent="." unique_id=1816674992]
 wait_time = 2.5
 autostart = true
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=2096976222]
 layer = 100
 
-[node name="HealthBarBg" type="ColorRect" parent="UI"]
+[node name="HealthBarBg" type="ColorRect" parent="UI" unique_id=906585481]
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 220.0
 offset_bottom = 40.0
+mouse_filter = 2
 color = Color(0.2, 0.02, 0.02, 1)
 
-[node name="HealthBarFill" type="ColorRect" parent="UI"]
+[node name="HealthBarFill" type="ColorRect" parent="UI" unique_id=2116999840]
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 220.0
 offset_bottom = 40.0
+mouse_filter = 2
 color = Color(0.9, 0.15, 0.15, 1)
 
-[node name="SprayBarBg" type="ColorRect" parent="UI"]
+[node name="SprayBarBg" type="ColorRect" parent="UI" unique_id=471489514]
 offset_left = 20.0
 offset_top = 48.0
 offset_right = 220.0
 offset_bottom = 68.0
+mouse_filter = 2
 color = Color(0.15, 0.12, 0.02, 1)
 
-[node name="SprayBarFill" type="ColorRect" parent="UI"]
+[node name="SprayBarFill" type="ColorRect" parent="UI" unique_id=523125719]
 offset_left = 20.0
 offset_top = 48.0
 offset_right = 220.0
 offset_bottom = 68.0
+mouse_filter = 2
 color = Color(1, 0.85, 0.2, 1)
 
 [node name="FadeOverlay" type="ColorRect" parent="UI"]
@@ -424,7 +428,7 @@ mouse_filter = 2
 
 [node name="Label" type="Label" parent="UI/GameOver/CenterContainer"]
 theme_override_font_sizes/font_size = 48
-text = "GAME OVER
+text = "LEVEL COMPLETE!
 Press SPACE to restart"
 horizontal_alignment = 1
 

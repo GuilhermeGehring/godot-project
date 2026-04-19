@@ -6,10 +6,12 @@ const INVINCIBILITY_TIME: float = 1.0
 
 const MAX_SPRAY_CHARGE: float = 100.0
 const SPRAY_DRAIN_PER_SEC: float = 40.0
-const SPRAY_RECHARGE_PER_SEC: float = 25.0
 const SPRAY_FIRE_INTERVAL: float = 0.04
 const SPRAY_SPREAD_RAD: float = 0.30
 const SPRAY_BULLET_SPEED: float = 750.0
+
+const SHAKE_RECHARGE_PER_FLIP: float = 2.0
+const SHAKE_MIN_DELTA: float = 5.0
 
 signal health_changed(current: int, maximum: int)
 signal died
@@ -26,6 +28,7 @@ var spray_charge: float = MAX_SPRAY_CHARGE
 var _invincible: bool = false
 var _dead: bool = false
 var _fire_accumulator: float = 0.0
+var _last_shake_dy_sign: int = 0
 var _gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity")
 
 func _ready() -> void:
@@ -51,6 +54,27 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_update_spray(delta)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _dead:
+		return
+	if event.is_action_released("recharge"):
+		_last_shake_dy_sign = 0
+		return
+	if not Input.is_action_pressed("recharge"):
+		return
+	if not (event is InputEventMouseMotion):
+		return
+	_process_shake(event as InputEventMouseMotion)
+
+func _process_shake(motion: InputEventMouseMotion) -> void:
+	if absf(motion.relative.y) < SHAKE_MIN_DELTA:
+		return
+	var current_sign: int = 1 if motion.relative.y > 0.0 else -1
+	if _last_shake_dy_sign != 0 and current_sign != _last_shake_dy_sign:
+		spray_charge = minf(MAX_SPRAY_CHARGE, spray_charge + SHAKE_RECHARGE_PER_FLIP)
+		spray_changed.emit(spray_charge, MAX_SPRAY_CHARGE)
+	_last_shake_dy_sign = current_sign
 
 func take_damage(amount: int) -> void:
 	if _invincible or _dead:
@@ -78,15 +102,14 @@ func kill() -> void:
 
 func _update_spray(delta: float) -> void:
 	var wants_to_fire: bool = Input.is_action_pressed("fire") and spray_charge > 0.0
-	if wants_to_fire:
-		spray_charge = max(0.0, spray_charge - SPRAY_DRAIN_PER_SEC * delta)
-		_fire_accumulator += delta
-		while _fire_accumulator >= SPRAY_FIRE_INTERVAL and spray_charge > 0.0:
-			_fire_accumulator -= SPRAY_FIRE_INTERVAL
-			_emit_spray_bullet()
-	else:
+	if not wants_to_fire:
 		_fire_accumulator = 0.0
-		spray_charge = min(MAX_SPRAY_CHARGE, spray_charge + SPRAY_RECHARGE_PER_SEC * delta)
+		return
+	spray_charge = max(0.0, spray_charge - SPRAY_DRAIN_PER_SEC * delta)
+	_fire_accumulator += delta
+	while _fire_accumulator >= SPRAY_FIRE_INTERVAL and spray_charge > 0.0:
+		_fire_accumulator -= SPRAY_FIRE_INTERVAL
+		_emit_spray_bullet()
 	spray_changed.emit(spray_charge, MAX_SPRAY_CHARGE)
 
 func _emit_spray_bullet() -> void:
