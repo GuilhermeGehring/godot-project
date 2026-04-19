@@ -25,6 +25,12 @@ signal fired(at: Vector2, direction: Vector2, speed: float)
 var health: int
 var spray_charge: float = MAX_SPRAY_CHARGE
 
+@onready var _sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var _col: CollisionShape2D = $CollisionShape2D
+@onready var _arm: Node2D = $Arm
+@onready var _arm_sprite: Sprite2D = $Arm/Sprite2D
+@onready var _muzzle: Marker2D = $Arm/Muzzle
+
 var _invincible: bool = false
 var _dead: bool = false
 var _fire_accumulator: float = 0.0
@@ -32,6 +38,9 @@ var _last_shake_dy_sign: int = 0
 var _gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity")
 
 func _ready() -> void:
+	var shape := _col.shape as RectangleShape2D
+	var tex := _sprite.sprite_frames.get_frame_texture("walk", 0)
+	_sprite.scale = shape.size / Vector2(tex.get_width(), tex.get_height())
 	health = max_health
 	health_changed.emit(health, max_health)
 	spray_changed.emit(spray_charge, MAX_SPRAY_CHARGE)
@@ -53,6 +62,8 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, speed)
 
 	move_and_slide()
+	_update_sprite(direction)
+	_update_arm()
 	_update_spray(delta)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -100,6 +111,18 @@ func kill() -> void:
 	health_changed.emit(0, max_health)
 	died.emit()
 
+func _update_arm() -> void:
+	var mouse_pos := get_global_mouse_position()
+	_arm.look_at(mouse_pos)
+	_arm_sprite.flip_v = mouse_pos.x < global_position.x
+
+func _update_sprite(direction: float) -> void:
+	if direction != 0.0:
+		_sprite.flip_h = direction < 0.0
+		_sprite.play("walk")
+	else:
+		_sprite.stop()
+
 func _update_spray(delta: float) -> void:
 	var wants_to_fire: bool = Input.is_action_pressed("fire") and spray_charge > 0.0
 	if not wants_to_fire:
@@ -117,7 +140,7 @@ func _emit_spray_bullet() -> void:
 	if aim == Vector2.ZERO:
 		aim = Vector2.RIGHT
 	var direction := aim.normalized().rotated(randf_range(-SPRAY_SPREAD_RAD, SPRAY_SPREAD_RAD))
-	fired.emit(global_position, direction, SPRAY_BULLET_SPEED)
+	fired.emit(_muzzle.global_position, direction, SPRAY_BULLET_SPEED)
 
 func _start_invincibility() -> void:
 	_invincible = true
