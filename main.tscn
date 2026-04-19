@@ -1,9 +1,10 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" uid="uid://cagq1dsps8bbu" path="res://main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://entities/player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://entities/enemy/enemy.tscn" id="3_enemy"]
 [ext_resource type="Texture2D" path="res://assets/level_01_bg.png" id="4_bg"]
+[ext_resource type="AudioStream" path="res://assets/Green_Blur_in_the_Canopy.mp3" id="5_music"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_platform"]
 size = Vector2(130, 20)
@@ -451,5 +452,10 @@ theme_override_font_sizes/font_size = 48
 text = "LEVEL COMPLETE!
 Press SPACE to restart"
 horizontal_alignment = 1
+
+[node name="Music" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_music")
+autoplay = true
+volume_db = -6.0
 
 [connection signal="body_entered" from="World/FinishZone" to="." method="_on_finish_zone_body_entered"]

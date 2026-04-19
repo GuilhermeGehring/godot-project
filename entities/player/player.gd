@@ -113,12 +113,13 @@ func kill() -> void:
 
 func _update_arm() -> void:
 	var mouse_pos := get_global_mouse_position()
+	var facing_left: bool = mouse_pos.x < global_position.x
 	_arm.look_at(mouse_pos)
-	_arm_sprite.flip_v = mouse_pos.x < global_position.x
+	_arm_sprite.flip_v = facing_left
+	_sprite.flip_h = facing_left
 
 func _update_sprite(direction: float) -> void:
 	if direction != 0.0:
-		_sprite.flip_h = direction < 0.0
 		_sprite.play("walk")
 	else:
 		_sprite.stop()

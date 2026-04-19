@@ -40,7 +40,7 @@ sprite_frames = SubResource("SpriteFrames_player")
 animation = &"walk"
 
 [node name="Arm" type="Node2D" parent="."]
-position = Vector2(5, -5)
+position = Vector2(-2, -5)
 
 [node name="Sprite2D" type="Sprite2D" parent="Arm"]
 position = Vector2(9, 4)

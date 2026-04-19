@@ -19,10 +19,10 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_flying_body"]
-size = Vector2(24, 24)
+size = Vector2(48, 48)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_flying_hitbox"]
-size = Vector2(24, 24)
+size = Vector2(48, 48)
 
 [node name="FlyingEnemy" type="CharacterBody2D"]
 collision_layer = 2
