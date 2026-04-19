@@ -123,6 +123,9 @@ Stomp funciona tanto em walking quanto em flying.
 | Distância horizontal         | 700 px à esquerda ou direita do player (sorteado) |
 | Altura acima do player (walking) | 120 px                          |
 | Altura acima do player (flying)  | 250 px                          |
+| Clamp horizontal (walking)   | x ∈ [-480, 480] (inimigo precisa nascer dentro das paredes) |
+| Clamp horizontal (flying)    | nenhum (atravessa paredes, pode entrar de fora) |
+| Lado forçado (walking) perto de parede | se `|player.x|` está a < 200 px de uma parede, walker spawna **sempre do lado oposto** (não da parede mais próxima) |
 
 Não há limite máximo de inimigos vivos (pode acumular em sessões longas — ver `docs/ARCHITECTURE.md` → Pendências).
 

@@ -9,6 +9,13 @@ const WALKING_SPAWN_HEIGHT_ABOVE: float = 120.0
 const FLYING_SPAWN_HEIGHT_ABOVE: float = 250.0
 const FLYING_CHANCE: float = 0.5
 
+# Limites do mapa (paredes em x=±530, com margem de 50px pro inimigo nascer dentro do playable)
+const WALKING_SPAWN_X_MIN: float = -480.0
+const WALKING_SPAWN_X_MAX: float = 480.0
+
+# Se o player tá a essa distância (px) de uma parede, walker spawna sempre do lado oposto
+const WALL_PROXIMITY_THRESHOLD: float = 200.0
+
 const FALL_DEATH_Y: float = 900.0
 const HEALTH_BAR_WIDTH: float = 200.0
 const SPRAY_BAR_WIDTH: float = 200.0
@@ -55,13 +62,26 @@ func _on_spawn_timer_timeout() -> void:
 	var scene: PackedScene = FLYING_ENEMY_SCENE if flying else WALKING_ENEMY_SCENE
 	var height_above: float = FLYING_SPAWN_HEIGHT_ABOVE if flying else WALKING_SPAWN_HEIGHT_ABOVE
 	var enemy := scene.instantiate() as Enemy
-	var side: float = 1.0 if randf() < 0.5 else -1.0
+	var side: float = _pick_spawn_side(flying)
+	var spawn_x: float = player.global_position.x + side * SPAWN_OFFSET_X
+	if not flying:
+		spawn_x = clampf(spawn_x, WALKING_SPAWN_X_MIN, WALKING_SPAWN_X_MAX)
 	enemy.position = Vector2(
-		player.global_position.x + side * SPAWN_OFFSET_X,
+		spawn_x,
 		player.global_position.y - height_above
 	)
 	enemy.target = player
 	add_child(enemy)
+
+func _pick_spawn_side(flying: bool) -> float:
+	if flying:
+		return 1.0 if randf() < 0.5 else -1.0
+	var px: float = player.global_position.x
+	if px > WALKING_SPAWN_X_MAX - WALL_PROXIMITY_THRESHOLD:
+		return -1.0
+	if px < WALKING_SPAWN_X_MIN + WALL_PROXIMITY_THRESHOLD:
+		return 1.0
+	return 1.0 if randf() < 0.5 else -1.0
 
 func _on_player_fired(at: Vector2, direction: Vector2, bullet_speed: float) -> void:
 	var bullet := BULLET_SCENE.instantiate() as Bullet

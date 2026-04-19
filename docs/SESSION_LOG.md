@@ -62,6 +62,24 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-04-19 — Walker spawna do lado oposto quando player está perto de parede
+
+**Contexto**: depois do clamp, walkers ainda podiam nascer em cima do player quando ele tava colado numa parede. Player perto da parede direita (x=400) + sorteio side=+1 → spawn_x clampado pra 480 → inimigo aparece a 80 px do player, sem chance de reagir.
+**Decisão**: extrair `_pick_spawn_side` e detectar proximidade de parede. Se `player.x > 480 - 200 = 280`, walker força `side = -1` (esquerda). Espelho pra parede esquerda. Random só no meio do mapa.
+**Razão**: spawn por lado existe pra dar ao player tempo de ver o inimigo chegando. Spawn ao lado mata essa intenção. A constante `WALL_PROXIMITY_THRESHOLD = 200` é o "espaço mínimo de visão" garantido. Flyers continuam random porque eles aparecem voando do nada — surpresa é feature deles.
+**Impacto**: `main.gd` (+ constante `WALL_PROXIMITY_THRESHOLD`, função `_pick_spawn_side`), `docs/GAME_RULES.md` (+ linha "Lado forçado" na tabela do Spawner).
+
+---
+
+## 2026-04-19 — Bug: walkers nascendo fora do mapa (clamp horizontal)
+
+**Contexto**: depois do mapa virar vertical (paredes em x=±530, playable ~[-510, 510]), `SPAWN_OFFSET_X = 700` ficou maior que meia-largura do mapa. Player no meio → walker nascia em x=±700, do lado de fora das paredes, sem chão → caía até `DESPAWN_Y` sem nunca aparecer.
+**Decisão / fix**: clampar `spawn_x` de walking enemies em `[-480, 480]` (50 px de margem pras paredes). Flyers continuam livres — eles têm `collision_mask = 0` e passam pelas paredes, então nascer fora é feature (entrada surpresa pelo lado).
+**Razão**: o spawn original assumia mapa horizontal aberto. Quando o mapa virou vertical e fechado, a constante de offset ficou desatualizada. Em vez de reduzir o offset (perde o "ataque vindo de longe" pros flyers), só clampa walkers — eles não conseguem nascer fora porque não atravessam as paredes.
+**Impacto**: `main.gd` (+ constantes `WALKING_SPAWN_X_MIN/MAX`, clamp em `_on_spawn_timer_timeout`), `docs/GAME_RULES.md` (linhas de clamp na tabela do Spawner).
+
+---
+
 ## 2026-04-19 — Bug: shake recharge não disparava (mouse_filter na UI)
 
 **Contexto**: shake recharge implementado e mergeado na sessão anterior, mas no teste o `_unhandled_input` do player não recebia nenhum evento de mouse. Action `recharge` registrada no InputMap, prints em `_input` confirmavam que o evento chegava ao Godot. Só `_unhandled_input` ficava silencioso.
