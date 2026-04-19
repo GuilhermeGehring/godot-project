@@ -1,0 +1,73 @@
+# Log de Sessões
+
+Entradas em ordem cronológica. Adiciona uma nova a cada sessão não-trivial. Foco no *por quê*, não no *o que* (o código já mostra o o quê).
+
+Formato sugerido por entrada:
+```
+## YYYY-MM-DD — Título curto
+**Contexto**: o que havia antes
+**Decisão**: o que foi feito
+**Razão**: por que (constraint, skill, discussão)
+**Impacto**: arquivos/sistemas afetados
+```
+
+---
+
+## 2026-04-18 — Bootstrap do projeto + skill godot-senior-dev
+
+**Contexto**: projeto Godot 4.6 vazio, só `project.godot` e ícone.
+**Decisão**: criar `CLAUDE.md` documentando o estado inicial e uma skill `godot-senior-dev` com boas práticas de Godot 4 (composição, static typing, sinais, layers, Jolt, performance).
+**Razão**: dar ao time (e às próximas sessões com IA) uma baseline compartilhada antes de começar a codar.
+**Impacto**: `CLAUDE.md`, `.claude/skills/godot-senior-dev/SKILL.md`.
+
+---
+
+## 2026-04-18 — Protótipo top-down (player vermelho + moeda amarela)
+
+**Contexto**: projeto vazio após bootstrap.
+**Decisão**: player 2D top-down com `Input.get_vector(move_*)`, moeda `Area2D` que emite `collected` ao tocar. Cenas separadas em `entities/player/` e `entities/coin/`. Main compõe e escuta.
+**Razão**: exercitar a estrutura mínima (cena-por-responsabilidade, sinal child→parent, Input Map).
+**Impacto**: `entities/player/*`, `entities/coin/*`, `main.*`, `project.godot` (Input Map).
+
+---
+
+## 2026-04-18 — Score + spawn exponencial de moedas
+
+**Contexto**: player coletava 1 moeda e acabava.
+**Decisão**: Main mantém `score: int`, escuta `collected(at)`, spawna 2 moedas novas em posição aleatória próxima. Score rendering num `Label` num `CanvasLayer`.
+**Razão**: rejeitar autoload pra score (da skill: "autoload não é pra conveniência"). Main já era o listener e dono natural do estado.
+**Impacto**: `main.{gd,tscn}`, `entities/coin/coin.gd` (sinal ganhou `at: Vector2`).
+
+---
+
+## 2026-04-18 — Pivot pra plataformer estilo Hollow Knight
+
+**Contexto**: usuário pediu mudança de gênero (top-down → plataformer lateral).
+**Decisão**: reescrever player pra `CharacterBody2D` com gravidade + pulo. Adicionar ground estático, background `CanvasLayer`, inimigo que persegue horizontalmente, spawner temporizado. Player ganhou `Camera2D` filho.
+**Razão**: começar o novo gênero do jeito certo em vez de esticar o top-down. Cenas de `coin` ficaram no repo mas desconectadas.
+**Impacto**: `entities/player/*` (reescrita), novo `entities/enemy/*`, `main.*`, `project.godot` (+ action `jump`).
+
+---
+
+## 2026-04-18 — Plataformas, HP, game over, stomp, spray
+
+**Contexto**: plataformer mínimo rodando.
+**Decisão grande 1**: separar collision layers (Player=1, Enemy=2, World=4). Player e inimigo não se empurram mais — interação via `Area2D` no inimigo. **Simplifica controle** e desacopla dano de física.
+**Decisão grande 2**: Nível com 3 chões e 2 buracos; 4 plataformas flutuantes. Queda (`y > 900`) → game over.
+**Decisão grande 3**: HP no player com sinais (`health_changed`, `died`), i-frames 1s, flash por `modulate.a`. HUD com 2 barras em `ColorRect` (bg + fill), game over overlay hidden por padrão, restart com Espaço.
+**Decisão grande 4**: Spray — bullets `Area2D` com lifetime 0.35s, cone ±17°, cadência 25/s. Carga 100 com dreno 40/s e recarga 25/s. Player emite `fired(at, dir, speed)` e Main instancia. Acumulador com while-loop pra cadência correta em low-fps.
+**Decisão grande 5**: Stomp — detectado no `_on_hitbox_body_entered` comparando `velocity.y > 0` E `player.y < enemy.y - 12`. Stomp mata instantâneo + bounce; senão, dano.
+**Razão**: seguir as diretrizes da skill — cenas pequenas com responsabilidades claras, sinais pra comunicação, stats ajustáveis via `const` no topo do script.
+**Impacto**: `entities/player/*`, `entities/enemy/*`, novo `entities/bullet/*`, `main.*`, `project.godot` (+ action `fire`).
+
+---
+
+## 2026-04-18 — Inimigo voador + política de documentação
+
+**Contexto**: um só tipo de inimigo (andador), sem docs.
+**Decisão 1**: refatorar `Enemy` como **classe base** (HP, hitbox, stomp, dano, sinal `died`). Criar `WalkingEnemy` (gravidade, chase horizontal) e `FlyingEnemy` (sem gravidade, chase 2D, atravessa plataformas via `collision_mask = 0`). Ambos extendem `Enemy`.
+**Razão**: 2 tipos que só diferem em movimento. Herança de 2 níveis é aceita pela skill; composição via componente seria overkill. `body is Enemy` no bullet continua pegando os dois — adicionar um terceiro tipo vai ser trivial.
+**Decisão 2**: Main sorteia tipo ao spawnar (50/50), com alturas de spawn diferentes (120 acima pro walking cair no chão; 250 acima pro flying).
+**Decisão 3**: criar `docs/{README,ARCHITECTURE,GAME_RULES,SESSION_LOG}.md`. Adicionar regra em `CLAUDE.md` pra IA **atualizar docs a cada decisão**, garantindo que futuros colaboradores (e futuros Claudes) tenham a trilha completa.
+**Razão**: o código mostra o *como*, mas o *porquê* vai pro doc. Sem isso, em 2 semanas ninguém sabe por que player e inimigo não se empurram.
+**Impacto**: `entities/enemy/{enemy,walking_enemy,flying_enemy}.{gd,tscn}`, `main.gd`, `CLAUDE.md`, `docs/**`.

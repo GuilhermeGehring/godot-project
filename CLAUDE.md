@@ -25,3 +25,15 @@ This project has no CLI build or test harness. Development happens in the Godot 
 
 - **Line endings**: `.gitattributes` enforces LF for text files (`* text=auto eol=lf`) — keep LF when creating new text files, even on Windows.
 - **Encoding**: UTF-8 (`.editorconfig`).
+
+## Documentation policy (mandatory)
+
+The `docs/` directory is the team's source of truth for the *why* behind the code. Always keep it in sync:
+
+- **`docs/ARCHITECTURE.md`** — update when changing folder layout, collision layers, signal flows, class hierarchies, or any cross-cutting technical decision.
+- **`docs/GAME_RULES.md`** — update when changing player/enemy stats, mechanics, controls, level layout, UI numbers, or any gameplay-facing value.
+- **`docs/SESSION_LOG.md`** — append a dated entry at the end of any non-trivial session, describing the decision and the reasoning behind it (not just the code change).
+
+Rule: **a turn that changes behavior or structure is not done until the relevant doc reflects it.** Trivial changes (typo, color tweak, bug fix without design implication) can skip the log; anything with rationale worth preserving must not.
+
+When editing the docs, prefer **diffing** the existing structure (Edit tool, targeted sections) over rewriting the file. Tables and sections are organized for browsability — keep that intact.

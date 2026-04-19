@@ -1,18 +1,16 @@
 class_name Enemy
 extends CharacterBody2D
 
-const STOMP_Y_THRESHOLD: float = 12.0
 const DESPAWN_Y: float = 1500.0
+const STOMP_Y_THRESHOLD: float = 12.0
 
 signal died
 
-@export var speed: float = 160.0
 @export var max_health: int = 3
 
 var target: Node2D
 
 var _health: int
-var _gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity")
 var _dying: bool = false
 
 func _ready() -> void:
@@ -22,16 +20,11 @@ func _physics_process(delta: float) -> void:
 	if global_position.y > DESPAWN_Y:
 		queue_free()
 		return
-
-	if not is_on_floor():
-		velocity.y += _gravity * delta
-
-	if target != null:
-		velocity.x = signf(target.global_position.x - global_position.x) * speed
-	else:
-		velocity.x = 0.0
-
+	_update_velocity(delta)
 	move_and_slide()
+
+func _update_velocity(_delta: float) -> void:
+	pass
 
 func hit(damage: int) -> void:
 	if _dying:

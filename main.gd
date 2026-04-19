@@ -1,9 +1,14 @@
 extends Node2D
 
-const ENEMY_SCENE: PackedScene = preload("res://entities/enemy/enemy.tscn")
+const WALKING_ENEMY_SCENE: PackedScene = preload("res://entities/enemy/enemy.tscn")
+const FLYING_ENEMY_SCENE: PackedScene = preload("res://entities/enemy/flying_enemy.tscn")
 const BULLET_SCENE: PackedScene = preload("res://entities/bullet/bullet.tscn")
+
 const SPAWN_OFFSET_X: float = 700.0
-const SPAWN_HEIGHT_ABOVE_PLAYER: float = 120.0
+const WALKING_SPAWN_HEIGHT_ABOVE: float = 120.0
+const FLYING_SPAWN_HEIGHT_ABOVE: float = 250.0
+const FLYING_CHANCE: float = 0.5
+
 const FALL_DEATH_Y: float = 900.0
 const HEALTH_BAR_WIDTH: float = 200.0
 const SPRAY_BAR_WIDTH: float = 200.0
@@ -33,11 +38,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_tree().reload_current_scene()
 
 func _on_spawn_timer_timeout() -> void:
-	var enemy := ENEMY_SCENE.instantiate() as Enemy
+	var flying: bool = randf() < FLYING_CHANCE
+	var scene: PackedScene = FLYING_ENEMY_SCENE if flying else WALKING_ENEMY_SCENE
+	var height_above: float = FLYING_SPAWN_HEIGHT_ABOVE if flying else WALKING_SPAWN_HEIGHT_ABOVE
+	var enemy := scene.instantiate() as Enemy
 	var side: float = 1.0 if randf() < 0.5 else -1.0
 	enemy.position = Vector2(
 		player.global_position.x + side * SPAWN_OFFSET_X,
-		player.global_position.y - SPAWN_HEIGHT_ABOVE_PLAYER
+		player.global_position.y - height_above
 	)
 	enemy.target = player
 	add_child(enemy)
