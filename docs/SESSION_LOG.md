@@ -62,6 +62,18 @@ Formato sugerido por entrada:
 
 ---
 
+## 2026-04-18 — Mapa duplicado + rota vertical de 9 pulos + level complete
+
+**Contexto**: mapa horizontal curto (~1800 px), 4 plataformas sem rota vertical clara, sem condição de vitória.
+**Decisão 1**: duplicar o mapa horizontal de ~1800 px para ~3700 px adicionando 3 segmentos de chão (`Ground4–6`) à direita.
+**Decisão 2**: substituir as 4 plataformas antigas por 12 novas. Plataformas 1–9 formam uma escada diagonal +200 px horizontal / +110 px vertical por degrau — exatamente 9 pulos para atingir o nível superior (pulo máximo = 138 px; 110 px dá margem confortável). Plataformas 10–12 são largas (300 px) e estendem o corredor superior de x=1300 até x=2600.
+**Decisão 3**: adicionar `FinishZone` (Area2D) no canto superior direito do mapa (x=2750, y=-430). Ao entrar, o spawner para e o overlay "LEVEL COMPLETE!" aparece. Reiniciar com Espaço — mesmo fluxo do game over.
+**Decisão 4**: adicionar flying enemy usando sprite animado (`mosca_01.png` / `mosca_02.png`, 8 fps) com flip horizontal baseado em `direction.x` para manter o sprite voltado para onde voa.
+**Razão**: dar ao nível uma progressão clara (subir) e uma condição de vitória (alcançar o canto superior direito), estilo Hollow Knight. O cálculo físico (h_max = v²/2g) guiou o espaçamento para garantir que todos os pulos sejam possíveis mas exijam intenção.
+**Impacto**: `main.{gd,tscn}` (mapa + level complete UI + FinishZone connection), `entities/enemy/flying_enemy.{gd,tscn}` (sprite + flip), `docs/GAME_RULES.md` (layout atualizado).
+
+---
+
 ## 2026-04-18 — Inimigo voador + política de documentação
 
 **Contexto**: um só tipo de inimigo (andador), sem docs.

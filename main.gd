@@ -18,8 +18,11 @@ const SPRAY_BAR_WIDTH: float = 200.0
 @onready var health_fill: ColorRect = $UI/HealthBarFill
 @onready var spray_fill: ColorRect = $UI/SprayBarFill
 @onready var game_over_panel: Control = $UI/GameOver
+@onready var level_complete_panel: Control = $UI/LevelComplete
+@onready var fade_overlay: ColorRect = $UI/FadeOverlay
 
 var _game_over: bool = false
+var _level_complete: bool = false
 
 func _ready() -> void:
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
@@ -28,14 +31,24 @@ func _ready() -> void:
 	player.died.connect(_on_player_died)
 	player.fired.connect(_on_player_fired)
 	game_over_panel.hide()
+	level_complete_panel.hide()
 
 func _process(_delta: float) -> void:
-	if not _game_over and player.global_position.y > FALL_DEATH_Y:
+	if not _game_over and not _level_complete and player.global_position.y > FALL_DEATH_Y:
 		player.kill()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _game_over and event.is_action_pressed("jump"):
+	if (_game_over or _level_complete) and event.is_action_pressed("jump"):
 		get_tree().reload_current_scene()
+
+func _on_finish_zone_body_entered(body: Node2D) -> void:
+	if _level_complete or not (body is Player):
+		return
+	_level_complete = true
+	spawn_timer.stop()
+	var tween := create_tween()
+	tween.tween_property(fade_overlay, "color:a", 1.0, 1.2)
+	tween.tween_callback(level_complete_panel.show)
 
 func _on_spawn_timer_timeout() -> void:
 	var flying: bool = randf() < FLYING_CHANCE

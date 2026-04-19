@@ -107,28 +107,44 @@ Não há limite máximo de inimigos vivos (pode acumular em sessões longas — 
 
 ## Layout do nível
 
-Player spawna em `(-600, 400)`.
+Player spawna em `(-280, 500)` (cai sobre F1Left). Mapa tem **parede direita** em x=530.
 
-### Chão (3 segmentos)
+O padrão de 3 tipos repete a cada 3 andares (120 px de espaçamento superfície-a-superfície):
 
-| Nó            | Centro          | Tamanho      |
-|---------------|-----------------|--------------|
-| GroundLeft    | (-600, 600)     | 500×100      |
-| GroundMid     | (0, 600)        | 500×100      |
-| GroundRight   | (700, 600)      | 500×100      |
+```
+wide   → ----- -----   (2 blocos 450 px, buraco ~110 px no centro)
+medium →  ---   ---    (2 blocos 220 px, buraco ~160 px no centro)
+short  → -- -- -- --   (4 blocos 130 px distribuídos)
+```
 
-Buracos: `x ∈ [-350, -250]` e `x ∈ [250, 450]`.
+### 8 Andares
 
-### Plataformas flutuantes (4)
+| Andar | Tipo   | Nó(s)              | y nó  | Superfície y |
+|-------|--------|--------------------|-------|--------------|
+| 1     | wide   | F1Left / F1Right   | 600   | 550          |
+| 2     | medium | F2Left / F2Right   | 440   | 430          |
+| 3     | short  | F3P1–F3P4          | 320   | 310          |
+| 4     | wide   | F4Left / F4Right   | 200   | 190          |
+| 5     | medium | F5Left / F5Right   | 80    | 70           |
+| 6     | short  | F6P1–F6P4          | -40   | -50          |
+| 7     | wide   | F7Left / F7Right   | -160  | -170         |
+| 8     | medium | F8Left / F8Right   | -280  | -290         |
 
-| Nó         | Centro          | Tamanho    |
-|------------|-----------------|------------|
-| Platform1  | (-300, 450)     | 150×20     |
-| Platform2  | (350, 400)      | 150×20     |
-| Platform3  | (-100, 350)     | 200×20     |
-| Platform4  | (600, 300)      | 200×20     |
+Posições dos nós wide: centros em x=±280 (cada 450×100).
+Posições dos nós medium: centros em x=±190 (cada 220×20).
+Posições dos nós short: centros em x=−320, −100, 100, 320 (cada 130×20).
 
-Platform1 e Platform2 servem como ponte pros buracos. Platform3 e Platform4 são alturas pra o player subir.
+### Parede direita
+
+`StaticBody2D` em x=530, tamanho 40×1200, cobre todo o mapa verticalmente. Bloqueia o player de sair pela direita.
+
+### Finish Zone (saída)
+
+`Area2D` em `(530, -300)`, shape `80×100`. Está embutida na parede direita ao nível do andar 8. Quando o player pula de F8Right (borda direita x=300) até a parede e entra na zona:
+- Spawner para.
+- Overlay "LEVEL COMPLETE! / Press SPACE to restart" aparece.
+
+Visual: retângulo dourado (`Color(1, 0.85, 0.1, 0.6)`, 40×100 px) na parede.
 
 ## UI
 
