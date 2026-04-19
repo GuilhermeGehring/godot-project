@@ -428,7 +428,7 @@ mouse_filter = 2
 
 [node name="Label" type="Label" parent="UI/GameOver/CenterContainer"]
 theme_override_font_sizes/font_size = 48
-text = "LEVEL COMPLETE!
+text = "GAME OVER
 Press SPACE to restart"
 horizontal_alignment = 1
 
